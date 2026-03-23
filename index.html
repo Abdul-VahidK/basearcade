@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='%231a6cff'/><text y='72' x='12' font-size='65' font-family='Arial' font-weight='bold' fill='white'>BA</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BaseArcade — Plinko</title>
 <script src="https://unpkg.com/viem@2.21.6/dist/viem.umd.js"></script>
@@ -591,6 +592,40 @@ header {
         PLAY
       </button>
     </div>
+    <div style="
+      padding:10px 16px;
+      border-top:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    ">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <img src="https://unavatar.io/twitter/VahidAbdulK"
+          style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border2);flex-shrink:0;"
+          onerror="this.src='https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png'"
+        />
+        <div>
+          <div style="font-size:0.75rem;font-weight:600;color:var(--text);line-height:1.2;">Vahid .ink</div>
+          <div style="font-size:0.65rem;color:var(--cyan);font-family:'DM Mono',monospace;">@VahidAbdulK</div>
+        </div>
+      </div>
+      <a href="https://x.com/intent/follow?screen_name=VahidAbdulK" target="_blank" style="
+        display:flex;align-items:center;gap:6px;
+        background:#000;
+        border:1px solid #333;
+        border-radius:20px;
+        padding:6px 14px;
+        text-decoration:none;
+        color:#fff;
+        font-size:0.75rem;
+        font-weight:600;
+        font-family:'DM Sans',sans-serif;
+        white-space:nowrap;
+      " onmouseover="this.style.background='#1d1d1d'" onmouseout="this.style.background='#000'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        Follow Dev
+      </a>
+    </div>
   </div>
 
   <!-- ── RIGHT PANEL ─── -->
@@ -675,7 +710,9 @@ async function fetchEthPrice() {
     ETH_PRICE_USD = 2000; // fallback
   }
 }
-const CONTRACT_ADDRESS = '0x35FB7E1132aF523890A120D6c93B7dEf9E479a48';
+const SUPABASE_URL = 'https://wbrspewpvzoziqfinpfd.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndicnNwZXdwdnpvemlxZmlucGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTQ2MjEsImV4cCI6MjA4OTgzMDYyMX0.j_MgjstUKK6K9DnCEcC4ilIocHY3VNCwMNiT47BrBUo';
+const CONTRACT_ADDRESS = '0xa1b3B05Cf81b249dEe0C7fA572060F99eF661246';
 const CONTRACT_ABI = [
   {
     name: 'play',
@@ -1045,15 +1082,15 @@ async function connectGenericEVM(wallet) {
     const accounts = await window.ethereum.request({ method:'eth_requestAccounts' });
     S.wallet = accounts[0];
     try {
-      await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:'0x14a34'}] });
+      await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{chainId:'0x2105'}] });
     } catch(sw) {
       if (sw.code === 4902) {
         await window.ethereum.request({
           method:'wallet_addEthereumChain',
-          params:[{ chainId:'0x14a34', chainName:'Base Sepolia',
+          params:[{ chainId:'0x2105', chainName:'Base',
             nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18},
-            rpcUrls:['https://sepolia.base.org'],
-            blockExplorerUrls:['https://sepolia.basescan.org'] }]
+            rpcUrls:['https://mainnet.base.org'],
+            blockExplorerUrls:['https://basescan.org'] }]
         });
       }
     }
@@ -1139,7 +1176,7 @@ async function handlePlay() {
         to: CONTRACT_ADDRESS,
         value: '0x' + weiValue.toString(16),
         data: '0x93e84cd9',
-        chainId: '0x14a34',
+        chainId: '0x2105',
         gas: '0x186A0',
       }]
     });
@@ -1205,7 +1242,7 @@ async function syncPlayerFromChain() {
     if (!S.wallet || !window.ethereum) return;
 
     // getPlayer(address) selector = 0x19525680
-    const data = '0x19525680' + S.wallet.slice(2).padStart(64, '0');
+    const data = '0x5c12cd4b' + S.wallet.slice(2).padStart(64, '0');
     const result = await window.ethereum.request({
       method: 'eth_call',
       params: [{ to: CONTRACT_ADDRESS, data }, 'latest']
@@ -1438,24 +1475,36 @@ function addHistory(xp) {
 
 const MOCK_LB = [];
 
-function renderLeaderboard() {
+async function renderLeaderboard() {
   const lb = document.getElementById('leaderboard');
-  if (!S.wallet || S.totalXP === 0) {
-    lb.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:0.72rem;font-family:\'DM Mono\',monospace;padding:18px 0">Play to appear on leaderboard</div>';
-    return;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?order=total_xp.desc&limit=5`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    const data = await res.json();
+
+    if (!data || data.length === 0) {
+      lb.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:0.72rem;font-family:\'DM Mono\',monospace;padding:18px 0">No players yet</div>';
+      return;
+    }
+
+    const rcls = ['r1','r2','r3','rn','rn'];
+    const rmed = ['🥇','🥈','🥉','4','5'];
+
+    lb.innerHTML = data.map((p,i) => `
+      <div class="lb-item">
+        <div class="lb-rank ${rcls[i]}">${rmed[i]}</div>
+        <div class="lb-addr">${p.wallet}</div>
+        <div class="lb-xp">${p.total_xp.toLocaleString()}</div>
+      </div>`).join('');
+
+  } catch(e) {
+    lb.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:0.72rem;font-family:\'DM Mono\',monospace;padding:18px 0">Failed to load</div>';
   }
-
-  const short = S.wallet.slice(0,6)+'...'+S.wallet.slice(-4);
-  const data = [{ addr: short, xp: S.totalXP }];
-  const rcls = ['r1','r2','r3','rn','rn'];
-  const rmed = ['🥇','🥈','🥉','4','5'];
-
-  lb.innerHTML = data.map((p,i)=>`
-    <div class="lb-item">
-      <div class="lb-rank ${rcls[i]}">${rmed[i]}</div>
-      <div class="lb-addr">${p.addr}</div>
-      <div class="lb-xp">${p.xp.toLocaleString()}</div>
-    </div>`).join('');
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1496,12 +1545,37 @@ function spawnConfetti(x, y) {
 // ─────────────────────────────────────────────────────────────
 // PERSIST
 // ─────────────────────────────────────────────────────────────
-function saveData() {
+async function saveData() {
   if (!S.wallet) return;
+
+  // Save to localStorage
   localStorage.setItem('ba_'+S.wallet.slice(0,10), JSON.stringify({
     totalXP:S.totalXP, gamesPlayed:S.gamesPlayed,
     bestDrop:S.bestDrop, jackpots:S.jackpots, history:S.history.slice(0,15)
   }));
+
+  // Save to Supabase global leaderboard
+  try {
+    const short = S.wallet.slice(0,6)+'...'+S.wallet.slice(-4);
+    await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        wallet: short,
+        total_xp: S.totalXP,
+        games_played: S.gamesPlayed,
+        best_drop: S.bestDrop,
+        updated_at: new Date().toISOString()
+      })
+    });
+  } catch(e) {
+    console.error('Leaderboard sync failed:', e);
+  }
 }
 function loadData() {
   if (!S.wallet) return;

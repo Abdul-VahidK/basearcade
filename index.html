@@ -1243,10 +1243,16 @@ async function syncPlayerFromChain() {
 
     // getPlayer(address) selector = 0x19525680
     const data = '0x5c12cd4b' + S.wallet.slice(2).padStart(64, '0');
-    const result = await window.ethereum.request({
-      method: 'eth_call',
-      params: [{ to: CONTRACT_ADDRESS, data }, 'latest']
-    });
+    const result = await fetch('https://mainnet.base.org', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_call',
+        params: [{ to: CONTRACT_ADDRESS, data }, 'latest'],
+        id: 1
+      })
+    }).then(r => r.json()).then(r => r.result);
 
     if (result && result !== '0x' && result.length >= 322) {
       const totalXP     = parseInt(result.slice(2, 66), 16);
